@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.shortcuts import reverse
 
 
 class PublishedManager(models.Manager):
@@ -50,3 +51,9 @@ class Post(models.Model):
     '''
     Post.published.filter(title__startswith='Who') 自定义管理器，使用的例子
     '''
+    def get_absolute_url(self):
+        return reverse('blog:post_detail',
+                       args=[self.publish.year,
+                             self.publish.strftime('%m'),
+                             self.publish.strftime('%d'),
+                             self.slug])
