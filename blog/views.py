@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Post
+from .models import Post, Comment
 from django.views.generic import ListView
-from .forms import EmailPostForm
+from .forms import EmailPostForm, CommentForm
 from django.core.mail import send_mail
 
 
@@ -11,9 +11,28 @@ def post_detail(request, year, month, day, post):
                              publish__year=year,
                              publish__month=month,
                              publish__day=day)
+    # 帖子的评论列表
+    comments = post.comments.filter(active=True)
+    new_comment = None
+
+    if request.method == 'POST':
+        # 得到表单的评论
+        comment_form = CommentForm(data=request.POST)
+        # 验证通过
+        if comment_form.is_valid():
+            # 创建对象，但是还没有保存
+            new_comment = comment_form.save(commit=False)
+            # 将当前帖子分配给评论
+            new_comment.post = post
+            new_comment.save()
+    else:
+        comment_form = CommentForm()
     return render(request,
                   'blog/post/detail.html',
-                  {'post': post})
+                  {'post': post,
+                   'comments': comments,
+                   'new_comment': new_comment,
+                   'comment_form': comment_form})
 
 
 # 分页的视图类
