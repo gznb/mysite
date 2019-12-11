@@ -15,4 +15,6 @@
         </p>
         {{ post.body|truncatechars:30|linebreaks }}
     {% endfor %}
+{#    添加分页的组件#}
+    {% include "pagination.html" with page=posts %}
 {% endblock %}
