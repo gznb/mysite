@@ -3,6 +3,12 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 
+class PublishedManager(models.Manager):
+    def get_queryset(self):
+        # 增加了一个 关于新闻状态的过滤器
+        return super(PublishedManager, self).get_queryset().filter(status='published')
+
+
 class Post(models.Model):
     # 定义了一个选择的元组
     STATUS_CHOICES = (
@@ -36,7 +42,11 @@ class Post(models.Model):
         # 为调试做准备
         return self.title
 
+    # 默认的管理器
+    objects = models.Manager()
 
-
-
-
+    # 自己定义的管理器
+    published = PublishedManager()
+    '''
+    Post.published.filter(title__startswith='Who') 自定义管理器，使用的例子
+    '''
