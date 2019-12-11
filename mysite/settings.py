@@ -100,6 +100,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_HOST_USER = 'gznbgznb@163.com'
+EMAIL_HOST_PASSWORD = 'lyz520'
+EMAIL_PORT = 25
+EMAIL_USE_TLS = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
