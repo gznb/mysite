@@ -1,8 +1,41 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Post, Comment
+from taggit.models import Tag
 from django.views.generic import ListView
 from .forms import EmailPostForm, CommentForm
 from django.core.mail import send_mail
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Count
+
+
+def post_list(request, tag_slug=None):
+    # 先是得到所有的帖子
+    object_list = Post.published.all()
+    tag = None
+    # 如果标签被使用
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        # 根据标签进行过滤
+        object_list = object_list.filter(tags__in=[tag])
+
+    paginator = Paginator(object_list, 3)
+    # 这里有有一个 get 明确指定的
+    page = request.GET.get("page")
+    try:
+        posts = paginator.page(page)
+    except PageNotAnInteger as err:
+        # 参数错误就显示第一页就好
+        posts = paginator.page(1)
+    except EmptyPage as err:
+        # 如果超过了最大的页数，那就是最后一页
+        posts = paginator.page(paginator.num_pages)
+
+    # 将页面，以及页面数据丢过去，使用的是模板语言， 传递了相应的变量
+    return render(request,
+                  'blog/post/list.html',
+                  {'page': page,
+                   'posts': posts,
+                   'tag': tag})
 
 
 def post_detail(request, year, month, day, post):
@@ -11,6 +44,7 @@ def post_detail(request, year, month, day, post):
                              publish__year=year,
                              publish__month=month,
                              publish__day=day)
+
     # 帖子的评论列表
     comments = post.comments.filter(active=True)
     new_comment = None
@@ -27,12 +61,18 @@ def post_detail(request, year, month, day, post):
             new_comment.save()
     else:
         comment_form = CommentForm()
+
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
+
     return render(request,
                   'blog/post/detail.html',
                   {'post': post,
                    'comments': comments,
                    'new_comment': new_comment,
-                   'comment_form': comment_form})
+                   'comment_form': comment_form,
+                   'similar_posts': similar_posts})
 
 
 # 分页的视图类
