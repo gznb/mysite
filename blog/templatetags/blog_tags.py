@@ -8,10 +8,11 @@ register = template.Library()
 
 @register.simple_tag
 def total_posts():
-    # 返回一个 一个数量
+    # 返回一个发布数量
     return Post.published.count()
 
 
+# 可以将  一个局部的一个小页面放入进来
 @register.inclusion_tag('blog/post/latest_posts.html')
 def show_latest_posts(count=5):
     latest_posts = Post.published.order_by('-publish')[:count]
@@ -27,4 +28,5 @@ def get_most_commented_posts(count=5):
 
 @register.filter(name='markdown')
 def markdown_format(text):
+
     return mark_safe(markdown.markdown(text))

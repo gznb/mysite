@@ -84,15 +84,19 @@ class PostListView(ListView):
 
 
 def post_share(request, post_id):
+    # 通过 id  得到  帖子
     post = get_object_or_404(Post, id=post_id, status='published')
     sent = False
     if request.method == 'POST':
+
         form = EmailPostForm(request.POST)
+
         if form.is_valid():
+            # cd 表示表单验证通过后返回的合理的表单中的数据
             cd = form.cleaned_data
-            post_url = request.build_absolute_uri(
-                post.get_absolute_url())
-            subject = '{} ({}) reconmends you reading "{}"'.format(cd['name'], cd['email'], post.title)
+            # request.build_absolute_uri  得到资源的绝对地址
+            post_url = request.build_absolute_uri(post.get_absolute_url())
+            subject = '{} ({}) recommends you reading "{}"'.format(cd['name'], cd['email'], post.title)
             message = 'Read "{}" at {}\n\n{} comments: {}'.format(post.title, post_url, cd['name'], cd['comments'])
             send_mail(subject, message, 'gznbgznb@163.com', [cd['to']])
             sent = True

@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.shortcuts import reverse
 from taggit.managers import TaggableManager
+from uuslug import slugify
 
 
 class PublishedManager(models.Manager):
@@ -61,7 +62,12 @@ class Post(models.Model):
 
     tags = TaggableManager()
 
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.title)
+        super(Post, self).save(*args, **kwargs)
 
+
+# 评论
 class Comment(models.Model):
     post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
     name = models.CharField(max_length=80)
